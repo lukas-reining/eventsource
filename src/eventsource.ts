@@ -4,7 +4,7 @@ const ContentTypeEventStream = 'text/event-stream';
 
 export type EventSourceOptions = {
   disableRetry?: boolean;
-  retry?: number
+  retry?: number;
 } & Omit<RequestInit, 'cache' | 'credentials' | 'signal'>;
 
 export class CustomEventSource extends EventTarget implements EventSource {
@@ -41,7 +41,7 @@ export class CustomEventSource extends EventTarget implements EventSource {
     super();
     this.url = url instanceof URL ? url.toString() : url;
     this.options = initDict ?? {};
-    this.retry = initDict?.retry ?? 5000
+    this.retry = initDict?.retry ?? 5000;
     this.connect();
   }
 
@@ -124,8 +124,12 @@ export class CustomEventSource extends EventTarget implements EventSource {
           }
         }
       }
-    } catch (error) {
-      await this.reconnect('Reconnecting EventSource because of error');
+    } catch (error: any) {
+      if (typeof error === 'object' && error?.name === 'AbortError') {
+        return;
+      }
+
+      await this.reconnect('Reconnecting EventSource because of error', error);
       return;
     }
 
