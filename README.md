@@ -1,7 +1,12 @@
 # EventSource
 
+[![https://www.npmjs.com/package/extended-eventsource](https://img.shields.io/npm/v/extended-eventsource?logo=npm)](https://www.npmjs.com/package/extended-eventsource)
+[![https://www.npmjs.com/package/extended-eventsource](https://img.shields.io/npm/dm/extended-eventsource?logo=npm)](https://www.npmjs.com/package/extended-eventsource)
+![NPM](https://img.shields.io/npm/l/extended-eventsource)
+
 This is a custom EventSource implementation that is fully compliant with
-the [WHATWG Server-Sent Events specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
+the [WHATWG Server-Sent Events specification](https://html.spec.whatwg.org/multipage/server-sent-events.html) but takes
+more arguments like request headers.
 
 It can be used in both web and Node.js environments.
 
@@ -52,6 +57,8 @@ eventSource.onmessage = (event: MessageEvent) => {
 eventSource.onerror = (error) => {
   console.error('Error occurred:', error);
 };
+
+
 ```
 
 ## Contributing
