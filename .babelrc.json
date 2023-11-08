@@ -1,0 +1,18 @@
+{
+  "ignore": [
+    "**/*.spec.ts",
+    "mocks/**",
+    "examples"
+  ],
+  "presets": [
+    "@babel/preset-typescript",
+    [
+      "@babel/preset-env",
+      {
+        "useBuiltIns": "usage",
+        "corejs": { "version": "3.33" },
+        "targets": "> 0.25%, not dead"
+      }
+    ]
+  ]
+}

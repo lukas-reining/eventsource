@@ -12,11 +12,11 @@
     "strictFunctionTypes": false,
     "strict": true,
     "noImplicitAny": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "isolatedModules": true
   },
   "exclude": [
-    "node_modules",
-    "example"
+    "node_modules"
   ],
   "include": [
     "**/**.ts"
