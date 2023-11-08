@@ -1,4 +1,4 @@
-import EventSource from 'extended-eventsource';
+import { EventSource } from 'extended-eventsource';
 
 async function main() {
   const eventsource = new EventSource('http://localhost:8080/sse');
