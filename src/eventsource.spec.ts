@@ -38,8 +38,8 @@ describe('EventSource', () => {
     const ev = new EventSource('http://localhost/sse', {
       disableRetry: true,
       headers: {
-        Authorization: "SecretToken"
-      }
+        Authorization: 'SecretToken',
+      },
     });
 
     ev.onopen = () => done();
@@ -117,7 +117,7 @@ describe('EventSource', () => {
       }),
     );
 
-    const ev = new EventSource('http://localhost/sse');
+    const ev = new EventSource('http://localhost/sse', { retry: 100 });
 
     ev.onerror = jest.fn().mockImplementationOnce(() => {
       expect(ev.readyState).toEqual(ev.CONNECTING);

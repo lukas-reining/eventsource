@@ -10,72 +10,40 @@ export async function* readChunks(
 
 export function getLines() {
   let buffer: Uint8Array | undefined;
-  let position: number; // current read position
-  let fieldLength: number; // length of the `field` portion of the line
-  let discardTrailingNewline = false;
 
-  // return a function that can process each incoming byte chunk:
   return function* onChunk(
     arr: Uint8Array,
   ): Generator<[line: Uint8Array, fieldLength: number]> {
-    if (buffer === undefined) {
-      buffer = arr;
-      position = 0;
-      fieldLength = -1;
-    } else {
-      // we're still parsing the old line. Append the new bytes into buffer:
-      buffer = concatBuffers(buffer, arr);
-    }
+    buffer = buffer === undefined ? arr : concatBuffers(buffer, arr);
 
-    const bufLength = buffer.length;
-    let lineStart = 0; // index where the current line starts
-    while (position < bufLength) {
-      if (discardTrailingNewline) {
-        if (buffer[position] === ControlChars.NewLine) {
-          lineStart = ++position; // skip to next char
-        }
+    while (buffer && buffer.length) {
+      const nextNewLineIndex = buffer.findIndex((char) =>
+        [ControlChars.NewLine, ControlChars.CarriageReturn].includes(char),
+      );
+      const foundEOL = nextNewLineIndex !== -1;
 
-        discardTrailingNewline = false;
-      }
-
-      // start looking forward till the end of line:
-      let lineEnd = -1; // index of the \r or \n char
-      for (; position < bufLength && lineEnd === -1; ++position) {
-        switch (buffer[position]) {
-          case ControlChars.Colon:
-            if (fieldLength === -1) {
-              // first colon in line
-              fieldLength = position - lineStart;
-            }
-            break;
-          // @ts-ignore:7029 \r case below should fallthrough to \n:
-          case ControlChars.CarriageReturn:
-            discardTrailingNewline = true;
-          case ControlChars.NewLine:
-            lineEnd = position;
-            break;
-        }
-      }
-
-      if (lineEnd === -1) {
+      if (!foundEOL) {
         // We reached the end of the buffer but the line hasn't ended.
         // Wait for the next arr and then continue parsing:
         break;
       }
 
-      // we've reached the line end, send it out:
-      yield [buffer.subarray(lineStart, lineEnd), fieldLength];
-      lineStart = position; // we're now on the next line
-      fieldLength = -1;
-    }
+      const hasCRLF =
+        buffer[nextNewLineIndex] === ControlChars.CarriageReturn &&
+        buffer[nextNewLineIndex + 1] === ControlChars.NewLine;
 
-    if (lineStart === bufLength) {
-      buffer = undefined; // we've finished reading it
-    } else if (lineStart !== 0) {
-      // Create a new view into buffer beginning at lineStart so we don't
-      // need to copy over the previous lines when we get the new arr:
-      buffer = buffer.subarray(lineStart);
-      position -= lineStart;
+      const eol = hasCRLF ? nextNewLineIndex + 1 : nextNewLineIndex;
+
+      const nextColonIndex = buffer.findIndex((char) =>
+        [ControlChars.Colon].includes(char),
+      );
+      const foundField =
+        nextColonIndex !== -1 && nextColonIndex < nextNewLineIndex;
+      const fieldLength = foundField ? nextColonIndex : nextNewLineIndex;
+
+      // we've reached the line end, send it out:
+      yield [buffer.subarray(0, nextNewLineIndex), fieldLength];
+      buffer = buffer.subarray(eol + 1);
     }
   };
 }
