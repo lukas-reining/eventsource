@@ -205,7 +205,7 @@ describe('EventSource', () => {
   });
 
   it('uses last event id if message does not contain one', (done) => {
-    mockChunks('id: 1\ndata: abc\n', '\n', 'id:\ndata: def\n', '\n');
+    mockChunks('id: 1\ndata: abc\n', '\n', 'data: def\n', '\n');
 
     const ev = new EventSource('http://localhost/sse', {
       disableRetry: true,
@@ -263,6 +263,81 @@ describe('EventSource', () => {
       { id: '2', data: 'abc' },
       { id: '3', data: 'def\ngih' },
     );
+  });
+
+  describe('works for the example of w3c spec', () => {
+    it('example 1', (done) => {
+      mockChunks('data: YHOO\n', 'data: +2\n', 'data: 10\n', '\n');
+
+      const ev = new EventSource('http://localhost/sse', {
+        disableRetry: true,
+      });
+
+      expectEvents(ev, done, 'message', { id: '', data: 'YHOO\n+2\n10' });
+    });
+
+    it('example 2', (done) => {
+      mockChunks(
+        ': test stream\n',
+        '\n',
+        'data: first event\n',
+        'id: 1\n',
+        '\n',
+        'data:second event\n',
+        'id\n',
+        '\n',
+        'data:  third event\n',
+        '\n',
+      );
+
+      const ev = new EventSource('http://localhost/sse', {
+        disableRetry: true,
+      });
+
+      expectEvents(
+        ev,
+        done,
+        'message',
+        { id: '1', data: 'first event' },
+        { id: '', data: 'second event' },
+        {
+          id: '',
+          data: ' third event',
+        },
+      );
+    });
+
+    it('example 3', (done) => {
+      mockChunks('data\n', '\n', 'data\n', 'data\n', '\n');
+
+      const ev = new EventSource('http://localhost/sse', {
+        disableRetry: true,
+      });
+
+      expectEvents(
+        ev,
+        done,
+        'message',
+        { id: '', data: '' },
+        { id: '', data: '' },
+      );
+    });
+
+    it('example 3', (done) => {
+      mockChunks('data:test\n', '\n', 'data: test\n', '\n');
+
+      const ev = new EventSource('http://localhost/sse', {
+        disableRetry: true,
+      });
+
+      expectEvents(
+        ev,
+        done,
+        'message',
+        { id: '', data: 'test' },
+        { id: '', data: 'test' },
+      );
+    });
   });
 });
 

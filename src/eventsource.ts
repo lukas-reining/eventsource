@@ -109,9 +109,9 @@ export class CustomEventSource extends EventTarget implements EventSource {
             line,
             fieldLength,
           )) {
-            if (id) {
+            if (typeof id !== "undefined") {
               this.currentLastEventId = id;
-            } else if (retry) {
+            } else if (typeof retry !== "undefined") {
               this.retry = retry;
               this.onRetryDelayReceived?.(retry);
             } else if (message) {

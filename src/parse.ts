@@ -49,7 +49,7 @@ export function getLines() {
 }
 
 export function getMessages() {
-  let message = createMessage();
+  let message: EventSourceMessage | undefined = undefined;
   const decoder = new TextDecoder();
 
   // return a function that can process each incoming line buffer:
@@ -59,7 +59,9 @@ export function getMessages() {
   ): Generator<[message?: EventSourceMessage, id?: string, retry?: number]> {
     const isEndOfMessage = line.length === 0;
     if (isEndOfMessage) {
-      yield [message];
+      if (message) {
+        yield [message];
+      }
       message = createMessage();
     } else if (fieldLength > 0) {
       // exclude comments and lines with no values
@@ -69,6 +71,8 @@ export function getMessages() {
       const valueOffset =
         fieldLength + (line[fieldLength + 1] === ControlChars.Space ? 2 : 1);
       const value = decoder.decode(line.subarray(valueOffset));
+
+      message ??= createMessage();
 
       switch (field) {
         case 'data':
