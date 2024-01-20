@@ -109,9 +109,9 @@ export class CustomEventSource extends EventTarget implements EventSource {
             line,
             fieldLength,
           )) {
-            if (typeof id !== "undefined") {
+            if (typeof id !== 'undefined') {
               this.currentLastEventId = id;
-            } else if (typeof retry !== "undefined") {
+            } else if (typeof retry !== 'undefined') {
               this.retry = retry;
               this.onRetryDelayReceived?.(retry);
             } else if (message) {
@@ -139,16 +139,19 @@ export class CustomEventSource extends EventTarget implements EventSource {
   // https://html.spec.whatwg.org/multipage/server-sent-events.html#reestablish-the-connection
   private async reconnect(msg?: string, error?: unknown) {
     const event = new Event('error');
-
     this.dispatchEvent(event);
     this.onerror?.(event);
 
-    if (msg) {
-      console.warn(msg, error ?? '');
+    if (error) {
+      console.warn('Error occurred in EventSource', error ?? '');
     }
 
     if (this.readyState === this.CLOSED || this.options.disableRetry) {
       return;
+    }
+
+    if (msg) {
+      console.warn(msg, error ?? '');
     }
 
     setTimeout(async () => {
