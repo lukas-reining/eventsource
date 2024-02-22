@@ -37,7 +37,7 @@ configuration object.
 ### Web
 
 ```typescript
-import EventSource from 'extended-eventsource';
+import { EventSource } from 'extended-eventsource';
 
 const eventSource = new EventSource('/events', {
   headers: {
