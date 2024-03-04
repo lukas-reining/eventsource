@@ -1,3 +1,4 @@
+import { ConsoleLogger, Logger } from './logger';
 import { EventSourceMessage, getLines, getMessages, readChunks } from './parse';
 
 const ContentTypeEventStream = 'text/event-stream';
@@ -5,6 +6,8 @@ const ContentTypeEventStream = 'text/event-stream';
 export type EventSourceOptions = {
   disableRetry?: boolean;
   retry?: number;
+  disableLogger?: boolean;
+  logger?: Logger;
 } & Omit<RequestInit, 'cache' | 'credentials' | 'signal'>;
 
 export class CustomEventSource extends EventTarget implements EventSource {
@@ -34,6 +37,8 @@ export class CustomEventSource extends EventTarget implements EventSource {
   private retry: number;
   private currentLastEventId?: string;
 
+  private logger?: Logger;
+
   constructor(
     url: string | URL,
     initDict?: EventSourceInit & EventSourceOptions,
@@ -42,6 +47,11 @@ export class CustomEventSource extends EventTarget implements EventSource {
     this.url = url instanceof URL ? url.toString() : url;
     this.options = initDict ?? {};
     this.retry = initDict?.retry ?? 5000;
+
+    if (!this.options.disableLogger) {
+      this.logger = this.options.logger ?? new ConsoleLogger();
+    }
+
     this.connect();
   }
 
@@ -143,7 +153,7 @@ export class CustomEventSource extends EventTarget implements EventSource {
     this.onerror?.(event);
 
     if (error) {
-      console.warn('Error occurred in EventSource', error ?? '');
+      this.logger?.warn('Error occurred in EventSource', error ?? '');
     }
 
     if (this.readyState === this.CLOSED || this.options.disableRetry) {
@@ -151,7 +161,7 @@ export class CustomEventSource extends EventTarget implements EventSource {
     }
 
     if (msg) {
-      console.warn(msg, error ?? '');
+      this.logger?.warn(msg, error ?? '');
     }
 
     setTimeout(async () => {
@@ -182,7 +192,7 @@ export class CustomEventSource extends EventTarget implements EventSource {
 
   // https://html.spec.whatwg.org/multipage/server-sent-events.html#fail-the-connection
   private failConnection(error: unknown) {
-    console.error('Fatal error occurred in EventSource', error);
+    this.logger?.error('Fatal error occurred in EventSource', error);
     this.readyState = this.CLOSED;
     const event = new Event('error');
     this.dispatchEvent(event);
@@ -191,7 +201,7 @@ export class CustomEventSource extends EventTarget implements EventSource {
 
   // https://html.spec.whatwg.org/multipage/server-sent-events.html#announce-the-connection
   private announceConnection() {
-    console.debug('Connection established');
+    this.logger?.debug('Connection established');
     this.readyState = this.OPEN;
     const event = new Event('open');
     this.dispatchEvent(event);
