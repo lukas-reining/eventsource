@@ -34,6 +34,7 @@ export class CustomEventSource extends EventTarget implements EventSource {
 
   public readonly options: EventSourceInit & EventSourceOptions;
   private abortController?: AbortController;
+  private timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;
   private retry: number;
   private currentLastEventId?: string;
 
@@ -65,6 +66,13 @@ export class CustomEventSource extends EventTarget implements EventSource {
   }
 
   private async connect(lastEventId?: string) {
+    if (this.readyState === this.CLOSED) {
+      this.logger?.warn(
+        'Canceled reconnecting due to state already being closed',
+      );
+      return;
+    }
+
     try {
       // https://html.spec.whatwg.org/multipage/server-sent-events.html#dom-eventsource
       this.abortController = new AbortController();
@@ -164,7 +172,7 @@ export class CustomEventSource extends EventTarget implements EventSource {
       this.logger?.warn(msg, error ?? '');
     }
 
-    setTimeout(async () => {
+    this.timeoutId = setTimeout(async () => {
       await this.connect(this.currentLastEventId);
     }, this.retry);
   }
@@ -211,6 +219,7 @@ export class CustomEventSource extends EventTarget implements EventSource {
   // https://html.spec.whatwg.org/multipage/server-sent-events.html#dom-eventsource-close
   public close() {
     this.readyState = this.CLOSED;
+    clearTimeout(this.timeoutId);
     this.abortController?.abort();
   }
 
