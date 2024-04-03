@@ -28,7 +28,6 @@ module.exports = {
       include: ['src/**/*'],
     }),
   ],
-
   output: [
     {
       file: pkg.main,

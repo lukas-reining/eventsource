@@ -1,12 +1,13 @@
 {
   "name": "extended-eventsource",
-  "version": "1.4.6",
+  "version": "1.4.8",
   "author": "Lukas Reining",
   "readme": "README.md",
   "description": "Spec compliant EventSource implementation for browsers and Node.JS",
   "homepage": "https://github.com/lukas-reining/eventsource",
   "repository": "https://github.com/lukas-reining/eventsource",
   "license": "MIT",
+  "type": "module",
   "keywords": [
     "EventSource",
     "Server Sent Events",
@@ -18,10 +19,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.esm.js",
-      "require": "./dist/index.cjs.js"
+      "require": "./dist/index.cjs"
     }
   },
-  "main": "dist/index.cjs.js",
+  "main": "dist/index.cjs",
   "module": "dist/index.esm.js",
   "browser": "dist/index.iife.js",
   "types": "dist/index.d.ts",
