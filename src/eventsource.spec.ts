@@ -45,6 +45,30 @@ describe('EventSource', () => {
     ev.onopen = () => done();
   });
 
+  it('allows for a custom fetch implementation to be used', (done) => {
+    mockChunks();
+
+    const fetchFn = jest.fn((input, init?) => {
+      return globalThis.fetch(input, init);
+    }) as typeof fetch;
+
+    const ev = new EventSource(
+      'http://localhost/sse',
+      {
+        disableRetry: true,
+      },
+      {
+        inputFetch: fetchFn,
+      },
+    );
+
+    ev.onopen = (event) => {
+      expect(event).toBeInstanceOf(Event);
+      expect(fetchFn).toHaveBeenCalled();
+      done();
+    };
+  });
+
   it('fails fatally if wrong content type is returned', (done) => {
     server.use(
       http.get('http://localhost/sse', () => {

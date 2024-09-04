@@ -40,11 +40,15 @@ export class CustomEventSource extends EventTarget implements EventSource {
 
   private logger?: Logger;
 
+  private fetch: typeof fetch;
+
   constructor(
     url: string | URL,
     initDict?: EventSourceInit & EventSourceOptions,
+    { inputFetch } = { inputFetch: globalThis.fetch },
   ) {
     super();
+    this.fetch = inputFetch;
     this.url = url instanceof URL ? url.toString() : url;
     this.options = initDict ?? {};
     this.retry = initDict?.retry ?? 5000;
@@ -95,7 +99,7 @@ export class CustomEventSource extends EventTarget implements EventSource {
         signal: this.abortController?.signal,
       };
 
-      const response = await globalThis.fetch(this.url, fetchOptions);
+      const response = await this.fetch(this.url, fetchOptions);
 
       // https://html.spec.whatwg.org/multipage/server-sent-events.html#dom-eventsource (Step 15)
       if (response.status !== 200) {
