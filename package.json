@@ -5,7 +5,10 @@
   "readme": "README.md",
   "description": "Spec compliant EventSource implementation for browsers and Node.JS",
   "homepage": "https://github.com/lukas-reining/eventsource",
-  "repository": "https://github.com/lukas-reining/eventsource",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lukas-reining/eventsource.git"
+  },
   "license": "MIT",
   "type": "module",
   "keywords": [
