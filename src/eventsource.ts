@@ -4,11 +4,41 @@ import { EventSourceMessage, getLines, getMessages, readChunks } from './parse';
 const ContentTypeEventStream = 'text/event-stream';
 
 export type EventSourceOptions = {
+  /**
+   * Disables connection retrying.
+   */
   disableRetry?: boolean;
+
+  /**
+   * Delay in milliseconds for retrying connection.
+   */
   retry?: number;
+
+  /**
+   * Disables logging.
+   */
   disableLogger?: boolean;
+
+  /**
+   * Logger to use for events and errors. Defaults to console.
+   */
   logger?: Logger;
+
+  /**
+   * Fetch implementation to use for connecting. Defaults to globalThis.fetch
+   */
+  fetch?: typeof fetch;
 } & Omit<RequestInit, 'cache' | 'credentials' | 'signal'>;
+
+/**
+ * @deprecated
+ */
+export type EventSourceExtraOptions = {
+  /**
+   * @deprecated Use {@link EventSourceOptions#fetch} instead
+   */
+  fetchInput?: typeof fetch;
+};
 
 export class CustomEventSource extends EventTarget implements EventSource {
   // https://html.spec.whatwg.org/multipage/server-sent-events.html#dom-eventsource-url
@@ -33,6 +63,7 @@ export class CustomEventSource extends EventTarget implements EventSource {
     | null = null;
 
   public readonly options: EventSourceInit & EventSourceOptions;
+  private readonly extraOptions?: EventSourceExtraOptions;
   private abortController?: AbortController;
   private timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;
   private retry: number;
@@ -40,17 +71,18 @@ export class CustomEventSource extends EventTarget implements EventSource {
 
   private logger?: Logger;
 
-  private fetch: typeof fetch;
-
   constructor(
     url: string | URL,
     initDict?: EventSourceInit & EventSourceOptions,
-    { inputFetch } = { inputFetch: globalThis.fetch.bind(globalThis) },
+    /**
+     * @deprecated Use the related options in initDict
+     */
+    extraOptions?: EventSourceExtraOptions,
   ) {
     super();
-    this.fetch = inputFetch;
-    this.url = url instanceof URL ? url.toString() : url;
     this.options = initDict ?? {};
+    this.extraOptions = extraOptions;
+    this.url = url instanceof URL ? url.toString() : url;
     this.retry = initDict?.retry ?? 5000;
 
     if (!this.options.disableLogger) {
@@ -99,7 +131,11 @@ export class CustomEventSource extends EventTarget implements EventSource {
         signal: this.abortController?.signal,
       };
 
-      const response = await this.fetch(this.url, fetchOptions);
+      const response = this.options.fetch
+        ? await this.options.fetch(this.url, fetchOptions)
+        : this.extraOptions?.fetchInput
+        ? await this.extraOptions.fetchInput(this.url, fetchOptions)
+        : await globalThis.fetch(this.url, fetchOptions);
 
       // https://html.spec.whatwg.org/multipage/server-sent-events.html#dom-eventsource (Step 15)
       if (response.status !== 200) {

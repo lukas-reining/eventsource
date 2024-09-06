@@ -45,7 +45,7 @@ describe('EventSource', () => {
     ev.onopen = () => done();
   });
 
-  it('allows for a custom fetch implementation to be used', (done) => {
+  it('allows for a custom fetch implementation to be via extraOptions used', (done) => {
     mockChunks();
 
     const fetchFn = jest.fn((input, init?) => {
@@ -58,7 +58,29 @@ describe('EventSource', () => {
         disableRetry: true,
       },
       {
-        inputFetch: fetchFn,
+        fetchInput: fetchFn,
+      },
+    );
+
+    ev.onopen = (event) => {
+      expect(event).toBeInstanceOf(Event);
+      expect(fetchFn).toHaveBeenCalled();
+      done();
+    };
+  });
+
+  it('allows for a custom fetch implementation to be via extraOptions used', (done) => {
+    mockChunks();
+
+    const fetchFn = jest.fn((input, init?) => {
+      return globalThis.fetch(input, init);
+    }) as typeof fetch;
+
+    const ev = new EventSource(
+      'http://localhost/sse',
+      {
+        disableRetry: true,
+        fetch: fetchFn,
       },
     );
 
