@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/lukas-reining/eventsource/compare/v1.5.2...v1.6.0) (2024-09-06)
+
+
+### Features
+
+* add jsdocs and deprecate old fetch parameter ([58a73b5](https://github.com/lukas-reining/eventsource/commit/58a73b563ccd6689f74717279005940b2fc1697e))
+
 ## [1.5.2](https://github.com/lukas-reining/eventsource/compare/v1.5.1...v1.5.2) (2024-09-06)
 
 
