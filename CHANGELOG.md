@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/lukas-reining/eventsource/compare/v1.5.0...v1.5.1) (2024-09-06)
+
+
+### Bug Fixes
+
+* bind custom fetch to globalThis ([1cb0504](https://github.com/lukas-reining/eventsource/commit/1cb050410f14a616b8471d90d22b207c5ab5fef4))
+
 ## 1.5.1 (2024-09-06)
 
 
