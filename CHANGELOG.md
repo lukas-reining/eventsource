@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/lukas-reining/eventsource/compare/v1.6.0...v1.6.1) (2024-09-06)
+
+
+### Bug Fixes
+
+* add public flag to pipline publishing ([63f06b8](https://github.com/lukas-reining/eventsource/commit/63f06b83a00d1f9fa700e30f3201dbfc47da1d53))
+
 ## [1.6.0](https://github.com/lukas-reining/eventsource/compare/v1.5.2...v1.6.0) (2024-09-06)
 
 
