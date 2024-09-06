@@ -1,0 +1,48 @@
+on:
+  push:
+    branches:
+      - main
+name: release-please
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{secrets.GH_TOKEN}}
+    steps:
+      - name: Release please
+        uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          release-type: node
+      - name: Checkout
+        uses: actions/checkout@v4
+        if: ${{ steps.release.outputs.release_created }}
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        if: ${{ steps.release.outputs.release_created }}
+        with:
+          node-version: 18
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install
+        if: ${{ steps.release.outputs.release_created }}
+        run: |
+          npm ci
+      - name: Build
+        if: ${{ steps.release.outputs.release_created }}
+        run: |
+          npm run build
+      - name: Generate SBOM
+        if: ${{ steps.release.outputs.release_created }}
+        run: |
+          npm sbom --sbom-format=cyclonedx --omit=dev --omit=peer > bom.json
+          gh release upload ${{ steps.release.outputs.tag_name }} ./bom.json
+      - name: Publish to NPM
+        if: ${{ steps.release.outputs.release_created }}
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+        run: npm publish
