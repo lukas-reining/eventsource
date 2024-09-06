@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.3](https://github.com/lukas-reining/eventsource/compare/v1.6.2...v1.6.3) (2024-09-06)
+
+
+### Bug Fixes
+
+* link for globalThis.fetch ([8c71f2f](https://github.com/lukas-reining/eventsource/commit/8c71f2f8b0c1c30b0b9f6eb030094ddd2a764401))
+
 ## [1.6.2](https://github.com/lukas-reining/eventsource/compare/v1.6.1...v1.6.2) (2024-09-06)
 
 
