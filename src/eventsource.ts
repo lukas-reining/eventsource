@@ -25,7 +25,7 @@ export type EventSourceOptions = {
   logger?: Logger;
 
   /**
-   * Fetch implementation to use for connecting. Defaults to globalThis.fetch
+   * Fetch implementation to use for connecting. Defaults to {@link globalThis.fetch}
    */
   fetch?: typeof fetch;
 } & Omit<RequestInit, 'cache' | 'credentials' | 'signal'>;
