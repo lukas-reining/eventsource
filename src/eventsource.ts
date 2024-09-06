@@ -45,7 +45,7 @@ export class CustomEventSource extends EventTarget implements EventSource {
   constructor(
     url: string | URL,
     initDict?: EventSourceInit & EventSourceOptions,
-    { inputFetch } = { inputFetch: globalThis.fetch },
+    { inputFetch } = { inputFetch: globalThis.fetch.bind(globalThis) },
   ) {
     super();
     this.fetch = inputFetch;
