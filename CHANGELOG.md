@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.2](https://github.com/lukas-reining/eventsource/compare/v1.6.1...v1.6.2) (2024-09-06)
+
+
+### Bug Fixes
+
+* do not run package publish twice ([640eb32](https://github.com/lukas-reining/eventsource/commit/640eb3293e6e2b95f675936c9f78f5086156db50))
+
 ## [1.6.1](https://github.com/lukas-reining/eventsource/compare/v1.6.0...v1.6.1) (2024-09-06)
 
 
