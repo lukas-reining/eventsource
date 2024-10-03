@@ -1,6 +1,6 @@
 import { http, HttpResponse as MswHttpResponse } from 'msw';
 import { server } from '../mocks/node';
-import { CustomEventSource as EventSource } from './eventsource';
+import { CustomEventSource as EventSource, CustomEvent } from './eventsource';
 import DoneCallback = jest.DoneCallback;
 
 describe('EventSource', () => {
@@ -128,8 +128,9 @@ describe('EventSource', () => {
       disableRetry: true,
     });
 
-    ev.onerror = () => {
+    ev.onerror = (event: CustomEvent) => {
       expect(ev.readyState).toEqual(ev.CLOSED);
+      expect(event.response?.status).toEqual(401);
       done();
     };
   });

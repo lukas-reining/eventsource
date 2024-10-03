@@ -40,6 +40,10 @@ export type EventSourceExtraOptions = {
   fetchInput?: typeof fetch;
 };
 
+export type CustomEvent = Event & { 
+  response?: Response; 
+ };
+
 export class CustomEventSource extends EventTarget implements EventSource {
   // https://html.spec.whatwg.org/multipage/server-sent-events.html#dom-eventsource-url
   public url: string;
@@ -141,6 +145,7 @@ export class CustomEventSource extends EventTarget implements EventSource {
       if (response.status !== 200) {
         return this.failConnection(
           `Request failed with status code ${response.status}`,
+          response,
         );
       } else if (
         !response.headers.get('Content-Type')?.includes(ContentTypeEventStream)
@@ -149,9 +154,10 @@ export class CustomEventSource extends EventTarget implements EventSource {
           `Request failed with wrong content type '${response.headers.get(
             'Content-Type',
           )}'`,
+          response,
         );
       } else if (!response?.body) {
-        return this.failConnection(`Request failed with empty response body'`);
+        return this.failConnection(`Request failed with empty response body'`, response);
       }
 
       this.announceConnection();
@@ -239,10 +245,11 @@ export class CustomEventSource extends EventTarget implements EventSource {
   }
 
   // https://html.spec.whatwg.org/multipage/server-sent-events.html#fail-the-connection
-  private failConnection(error: unknown) {
+  private failConnection(error: unknown, response: Response) {
     this.logger?.error('Fatal error occurred in EventSource', error);
     this.readyState = this.CLOSED;
-    const event = new Event('error');
+    const event: CustomEvent = new Event('error');
+    event.response = response;
     this.dispatchEvent(event);
     this.onerror?.(event);
   }
