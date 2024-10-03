@@ -40,6 +40,10 @@ export type EventSourceExtraOptions = {
   fetchInput?: typeof fetch;
 };
 
+export type CustomEvent = Event & { 
+  response?: Response; 
+ };
+
 export class CustomEventSource extends EventTarget implements EventSource {
   // https://html.spec.whatwg.org/multipage/server-sent-events.html#dom-eventsource-url
   public url: string;
@@ -51,12 +55,12 @@ export class CustomEventSource extends EventTarget implements EventSource {
   public readyState = this.CONNECTING;
 
   // https://html.spec.whatwg.org/multipage/server-sent-events.html#handler-eventsource-onopen
-  public onerror: ((this: EventSource, ev: Event) => any) | null = null;
+  public onerror: ((this: EventSource, ev: CustomEvent) => any) | null = null;
   // https://html.spec.whatwg.org/multipage/server-sent-events.html#handler-eventsource-onmessage
   public onmessage: ((this: EventSource, ev: MessageEvent) => any) | null =
     null;
   // https://html.spec.whatwg.org/multipage/server-sent-events.html#handler-eventsource-onerror
-  public onopen: ((this: EventSource, ev: Event) => any) | null = null;
+  public onopen: ((this: EventSource, ev: CustomEvent) => any) | null = null;
 
   public onRetryDelayReceived:
     | ((this: EventSource, delay: number) => any)
@@ -141,6 +145,7 @@ export class CustomEventSource extends EventTarget implements EventSource {
       if (response.status !== 200) {
         return this.failConnection(
           `Request failed with status code ${response.status}`,
+          response,
         );
       } else if (
         !response.headers.get('Content-Type')?.includes(ContentTypeEventStream)
@@ -149,12 +154,13 @@ export class CustomEventSource extends EventTarget implements EventSource {
           `Request failed with wrong content type '${response.headers.get(
             'Content-Type',
           )}'`,
+          response,
         );
       } else if (!response?.body) {
-        return this.failConnection(`Request failed with empty response body'`);
+        return this.failConnection(`Request failed with empty response body'`, response);
       }
 
-      this.announceConnection();
+      this.announceConnection(response);
 
       const reader: ReadableStreamDefaultReader<Uint8Array> =
         response.body.getReader();
@@ -239,19 +245,21 @@ export class CustomEventSource extends EventTarget implements EventSource {
   }
 
   // https://html.spec.whatwg.org/multipage/server-sent-events.html#fail-the-connection
-  private failConnection(error: unknown) {
+  private failConnection(error: unknown, response: Response) {
     this.logger?.error('Fatal error occurred in EventSource', error);
     this.readyState = this.CLOSED;
-    const event = new Event('error');
+    const event: CustomEvent = new Event('error');
+    event.response = response;
     this.dispatchEvent(event);
     this.onerror?.(event);
   }
 
   // https://html.spec.whatwg.org/multipage/server-sent-events.html#announce-the-connection
-  private announceConnection() {
+  private announceConnection(response: Response) {
     this.logger?.debug('Connection established');
     this.readyState = this.OPEN;
-    const event = new Event('open');
+    const event: CustomEvent = new Event('open');
+    event.response = response;
     this.dispatchEvent(event);
     this.onopen?.(event);
   }
