@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/lukas-reining/eventsource/compare/v1.6.4...v1.7.0) (2024-10-03)
+
+
+### Features
+
+* add request to events ([91fd2e4](https://github.com/lukas-reining/eventsource/commit/91fd2e43883a68af4bfd3b7333cde21ca4c8ba85))
+
 ## [1.6.4](https://github.com/lukas-reining/eventsource/compare/v1.6.3...v1.6.4) (2024-09-06)
 
 
