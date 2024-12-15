@@ -36,16 +36,6 @@ export type EventSourceOptions = {
   omitCredentials?: boolean;
 } & Omit<RequestInit, 'cache' | 'credentials' | 'signal'>;
 
-/**
- * @deprecated
- */
-export type EventSourceExtraOptions = {
-  /**
-   * @deprecated Use {@link EventSourceOptions#fetch} instead
-   */
-  fetchInput?: typeof fetch;
-};
-
 export type CustomEvent = Event & {
   response?: Response;
 };
@@ -73,7 +63,6 @@ export class CustomEventSource extends EventTarget implements EventSource {
     | null = null;
 
   public readonly options: EventSourceInit & EventSourceOptions;
-  private readonly extraOptions?: EventSourceExtraOptions;
   private abortController?: AbortController;
   private timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;
   private retry: number;
@@ -84,14 +73,9 @@ export class CustomEventSource extends EventTarget implements EventSource {
   constructor(
     url: string | URL,
     initDict?: EventSourceInit & EventSourceOptions,
-    /**
-     * @deprecated Use the related options in initDict
-     */
-    extraOptions?: EventSourceExtraOptions,
   ) {
     super();
     this.options = initDict ?? {};
-    this.extraOptions = extraOptions;
     this.url = url instanceof URL ? url.toString() : url;
     this.retry = initDict?.retry ?? 5000;
 
@@ -153,8 +137,6 @@ export class CustomEventSource extends EventTarget implements EventSource {
 
       const response = this.options.fetch
         ? await this.options.fetch(this.url, fetchOptions)
-        : this.extraOptions?.fetchInput
-        ? await this.extraOptions.fetchInput(this.url, fetchOptions)
         : await globalThis.fetch(this.url, fetchOptions);
 
       // https://html.spec.whatwg.org/multipage/server-sent-events.html#dom-eventsource (Step 15)

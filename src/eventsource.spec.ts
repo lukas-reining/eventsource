@@ -1,6 +1,6 @@
 import { http, HttpResponse as MswHttpResponse } from 'msw';
 import { server } from '../mocks/node';
-import { CustomEventSource as EventSource, CustomEvent } from './eventsource';
+import { CustomEvent, CustomEventSource as EventSource } from './eventsource';
 import DoneCallback = jest.DoneCallback;
 
 describe('EventSource', () => {
@@ -52,15 +52,10 @@ describe('EventSource', () => {
       return globalThis.fetch(input, init);
     }) as typeof fetch;
 
-    const ev = new EventSource(
-      'http://localhost/sse',
-      {
-        disableRetry: true,
-      },
-      {
-        fetchInput: fetchFn,
-      },
-    );
+    const ev = new EventSource('http://localhost/sse', {
+      disableRetry: true,
+      fetch: fetchFn,
+    });
 
     ev.onopen = (event) => {
       expect(event).toBeInstanceOf(Event);
@@ -76,13 +71,10 @@ describe('EventSource', () => {
       return globalThis.fetch(input, init);
     }) as typeof fetch;
 
-    const ev = new EventSource(
-      'http://localhost/sse',
-      {
-        disableRetry: true,
-        fetch: fetchFn,
-      },
-    );
+    const ev = new EventSource('http://localhost/sse', {
+      disableRetry: true,
+      fetch: fetchFn,
+    });
 
     ev.onopen = (event) => {
       expect(event).toBeInstanceOf(Event);
