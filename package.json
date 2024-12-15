@@ -1,6 +1,6 @@
 {
   "name": "extended-eventsource",
-  "version": "1.7.0",
+  "version": "2.0.0",
   "author": "Lukas Reining",
   "readme": "README.md",
   "description": "Spec compliant EventSource implementation for browsers and Node.JS",
