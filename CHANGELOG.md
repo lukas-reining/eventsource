@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.0.0](https://github.com/lukas-reining/eventsource/compare/v1.7.0...v2.0.0) (2024-12-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove deprecated extraOptions ([#28](https://github.com/lukas-reining/eventsource/issues/28))
+* change credentials mode from "omit" to "same-origin" when set to false ([#27](https://github.com/lukas-reining/eventsource/issues/27))
+
+### Bug Fixes
+
+* change credentials mode from "omit" to "same-origin" when set to false ([#27](https://github.com/lukas-reining/eventsource/issues/27)) ([bf882f3](https://github.com/lukas-reining/eventsource/commit/bf882f3004f25b5742c6103662deedcf033bc890))
+
+
+### Miscellaneous Chores
+
+* remove deprecated extraOptions ([#28](https://github.com/lukas-reining/eventsource/issues/28)) ([5620280](https://github.com/lukas-reining/eventsource/commit/5620280009c2b1ef16cd1354de7cd248e1f6cc60))
+
 ## [1.7.0](https://github.com/lukas-reining/eventsource/compare/v1.6.4...v1.7.0) (2024-10-03)
 
 
