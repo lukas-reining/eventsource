@@ -28,6 +28,12 @@ export type EventSourceOptions = {
    * Fetch implementation to use for connecting. Defaults to {@link globalThis.fetch}
    */
   fetch?: typeof fetch;
+
+  /**
+   * Sets the fetch credential mode to `omit` instead of `same-site`.
+   * If {@link EventSourceInit.withCredentials} is set, {@link omitCredentials} will take precedence and the `credential` will be set to `omit`.
+   */
+  omitCredentials?: boolean;
 } & Omit<RequestInit, 'cache' | 'credentials' | 'signal'>;
 
 /**
@@ -40,9 +46,9 @@ export type EventSourceExtraOptions = {
   fetchInput?: typeof fetch;
 };
 
-export type CustomEvent = Event & { 
-  response?: Response; 
- };
+export type CustomEvent = Event & {
+  response?: Response;
+};
 
 export class CustomEventSource extends EventTarget implements EventSource {
   // https://html.spec.whatwg.org/multipage/server-sent-events.html#dom-eventsource-url
@@ -93,6 +99,12 @@ export class CustomEventSource extends EventTarget implements EventSource {
       this.logger = this.options.logger ?? new ConsoleLogger();
     }
 
+    if (this.options.omitCredentials && this.options.withCredentials) {
+      this.logger?.warn(
+        'omitCredentials and withCredentials have been set to true. withCredentials will be ignored and credentials will not be sent!',
+      );
+    }
+
     this.connect();
   }
 
@@ -131,7 +143,11 @@ export class CustomEventSource extends EventTarget implements EventSource {
               Accept: ContentTypeEventStream,
             },
         cache: 'no-store',
-        credentials: this.withCredentials ? 'include' : 'omit',
+        credentials: this.options.omitCredentials
+          ? 'omit'
+          : this.withCredentials
+          ? 'include'
+          : 'same-origin',
         signal: this.abortController?.signal,
       };
 
@@ -157,7 +173,10 @@ export class CustomEventSource extends EventTarget implements EventSource {
           response,
         );
       } else if (!response?.body) {
-        return this.failConnection(`Request failed with empty response body'`, response);
+        return this.failConnection(
+          `Request failed with empty response body'`,
+          response,
+        );
       }
 
       this.announceConnection(response);
