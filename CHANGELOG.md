@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/lukas-reining/eventsource/compare/v2.0.0...v2.1.0) (2025-01-03)
+
+
+### Features
+
+* include request in events ([#31](https://github.com/lukas-reining/eventsource/issues/31)) ([a39b908](https://github.com/lukas-reining/eventsource/commit/a39b908ff5f5302434bc666d8dc5e09b2c55f8f5))
+
 ## [2.0.0](https://github.com/lukas-reining/eventsource/compare/v1.7.0...v2.0.0) (2024-12-15)
 
 
