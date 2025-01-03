@@ -37,6 +37,7 @@ export type EventSourceOptions = {
 } & Omit<RequestInit, 'cache' | 'credentials' | 'signal'>;
 
 export type CustomEvent = Event & {
+  request?: Request;
   response?: Response;
 };
 
@@ -109,40 +110,43 @@ export class CustomEventSource extends EventTarget implements EventSource {
       return;
     }
 
+    this.abortController = new AbortController();
+    this.readyState = this.CONNECTING;
+
+    const fetchOptions: RequestInit = {
+      ...this.options,
+      headers: lastEventId
+        ? {
+            ...this.options.headers,
+            Accept: ContentTypeEventStream,
+            'Last-Event-ID': lastEventId,
+          }
+        : {
+            ...this.options.headers,
+            Accept: ContentTypeEventStream,
+          },
+      cache: 'no-store',
+      credentials: this.options.omitCredentials
+        ? 'omit'
+        : this.withCredentials
+        ? 'include'
+        : 'same-origin',
+      signal: this.abortController?.signal,
+    };
+
+    const request = new Request(this.url, fetchOptions);
+
     try {
       // https://html.spec.whatwg.org/multipage/server-sent-events.html#dom-eventsource
-      this.abortController = new AbortController();
-      this.readyState = this.CONNECTING;
-
-      const fetchOptions: RequestInit = {
-        ...this.options,
-        headers: lastEventId
-          ? {
-              ...this.options.headers,
-              Accept: ContentTypeEventStream,
-              'Last-Event-ID': lastEventId,
-            }
-          : {
-              ...this.options.headers,
-              Accept: ContentTypeEventStream,
-            },
-        cache: 'no-store',
-        credentials: this.options.omitCredentials
-          ? 'omit'
-          : this.withCredentials
-          ? 'include'
-          : 'same-origin',
-        signal: this.abortController?.signal,
-      };
-
       const response = this.options.fetch
-        ? await this.options.fetch(this.url, fetchOptions)
-        : await globalThis.fetch(this.url, fetchOptions);
+        ? await this.options.fetch(request)
+        : await globalThis.fetch(request);
 
       // https://html.spec.whatwg.org/multipage/server-sent-events.html#dom-eventsource (Step 15)
       if (response.status !== 200) {
         return this.failConnection(
           `Request failed with status code ${response.status}`,
+          request,
           response,
         );
       } else if (
@@ -152,16 +156,18 @@ export class CustomEventSource extends EventTarget implements EventSource {
           `Request failed with wrong content type '${response.headers.get(
             'Content-Type',
           )}'`,
+          request,
           response,
         );
       } else if (!response?.body) {
         return this.failConnection(
           `Request failed with empty response body'`,
+          request,
           response,
         );
       }
 
-      this.announceConnection(response);
+      this.announceConnection(request, response);
 
       const reader: ReadableStreamDefaultReader<Uint8Array> =
         response.body.getReader();
@@ -194,16 +200,21 @@ export class CustomEventSource extends EventTarget implements EventSource {
         return;
       }
 
-      await this.reconnect('Reconnecting EventSource because of error', error);
+      await this.reconnect(
+        'Reconnecting EventSource because of error',
+        error,
+        request,
+      );
       return;
     }
 
-    await this.reconnect('Reconnecting because EventSource connection closed');
+    await this.reconnect('Reconnecting because EventSource connection closed', request);
   }
 
   // https://html.spec.whatwg.org/multipage/server-sent-events.html#reestablish-the-connection
-  private async reconnect(msg?: string, error?: unknown) {
-    const event = new Event('error');
+  private async reconnect(msg?: string, error?: unknown, request?: Request) {
+    const event: CustomEvent = new Event('error');
+    event.request = request;
     this.dispatchEvent(event);
     this.onerror?.(event);
 
@@ -246,20 +257,22 @@ export class CustomEventSource extends EventTarget implements EventSource {
   }
 
   // https://html.spec.whatwg.org/multipage/server-sent-events.html#fail-the-connection
-  private failConnection(error: unknown, response: Response) {
+  private failConnection(error: unknown, request: Request, response: Response) {
     this.logger?.error('Fatal error occurred in EventSource', error);
     this.readyState = this.CLOSED;
     const event: CustomEvent = new Event('error');
+    event.request = request;
     event.response = response;
     this.dispatchEvent(event);
     this.onerror?.(event);
   }
 
   // https://html.spec.whatwg.org/multipage/server-sent-events.html#announce-the-connection
-  private announceConnection(response: Response) {
+  private announceConnection(request: Request, response: Response) {
     this.logger?.debug('Connection established');
     this.readyState = this.OPEN;
     const event: CustomEvent = new Event('open');
+    event.request = request;
     event.response = response;
     this.dispatchEvent(event);
     this.onopen?.(event);

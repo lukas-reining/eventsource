@@ -21,6 +21,22 @@ describe('EventSource', () => {
     };
   });
 
+  it('includes request and response in open event', (done) => {
+    mockChunks();
+
+    const ev = new EventSource('http://localhost/sse', {
+      disableRetry: true,
+    });
+
+    ev.onopen = (event) => {
+      expect(event).toBeInstanceOf(Event);
+      expect(event.request).toBeInstanceOf(Request);
+      expect(event.response).toBeInstanceOf(Response);
+      done();
+    };
+  });
+
+
   it('sends custom headers to the backend', (done) => {
     server.use(
       http.get('http://localhost/sse', (request) => {
@@ -83,6 +99,32 @@ describe('EventSource', () => {
     };
   });
 
+  it('fails fatally if wrong status code is returned', (done) => {
+    server.use(
+      http.get('http://localhost/sse', () => {
+        return new MswHttpResponse(new ReadableStream(), {
+          status: 401,
+          headers: {
+            'Content-Type': 'text/event-stream',
+          },
+        });
+      }),
+    );
+
+    const ev = new EventSource('http://localhost/sse', {
+      disableRetry: true,
+    });
+
+    ev.onerror = (event: CustomEvent) => {
+      expect(ev.readyState).toEqual(ev.CLOSED);
+      expect(event.request).toBeInstanceOf(Request);
+      expect(event.request?.url).toEqual("http://localhost/sse");
+      expect(event.response).toBeInstanceOf(Response);
+      expect(event.response?.status).toEqual(401);
+      done();
+    };
+  });
+
   it('fails fatally if wrong content type is returned', (done) => {
     server.use(
       http.get('http://localhost/sse', () => {
@@ -104,7 +146,7 @@ describe('EventSource', () => {
     };
   });
 
-  it('fails fatally if wrong status code is returned', (done) => {
+  it('return request and ', (done) => {
     server.use(
       http.get('http://localhost/sse', () => {
         return new MswHttpResponse(new ReadableStream(), {
